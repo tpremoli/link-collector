@@ -1,8 +1,8 @@
-/*
+.link-collector-settings .setting-item-control {
+	flex-wrap: wrap;
+	gap: 8px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+.link-collector-settings .setting-item-control input[type='text'] {
+	min-width: 180px;
+}
