@@ -11,7 +11,7 @@ Link Collector is an Obsidian plugin that keeps frontmatter properties in sync w
 Each rule has:
 
 - Property: the frontmatter property to update, such as `jira`.
-- Matcher: a case-insensitive wildcard matcher, such as `arm.jira.com` or `*youtube*`.
+- Matcher: a case-insensitive wildcard matcher, such as `jira.com` or `*youtube*`.
 - Save mode: save the first matching link as plain text, or all matching links as a list.
 
 The plugin syncs after paste events and when Markdown files are modified. You can also run **Sync links in current note** from the command palette.
