@@ -25,16 +25,32 @@ export default class LinkCollectorPlugin extends Plugin {
 			id: 'sync-current-note',
 			name: 'Sync links in current note',
 			callback: () => {
-				const file = this.app.workspace.getActiveFile();
+				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+				const file = markdownView?.file ?? this.app.workspace.getActiveFile();
 
 				if (!file) {
 					new Notice('No active note to sync.');
 					return;
 				}
 
+				if (markdownView?.file === file) {
+					void this.syncMarkdown(file, markdownView.editor.getValue(), true);
+					return;
+				}
+
 				void this.syncFile(file, true);
 			},
 		});
+
+		this.registerEvent(
+			this.app.workspace.on('editor-change', (editor, info) => {
+				if (!(info.file instanceof TFile) || info.file.extension !== 'md') {
+					return;
+				}
+
+				this.scheduleSync(info.file, DEFAULT_SYNC_DELAY_MS, editor.getValue());
+			}),
+		);
 
 		this.registerEvent(
 			this.app.vault.on('modify', (file) => {
@@ -94,7 +110,7 @@ export default class LinkCollectorPlugin extends Plugin {
 		}
 	}
 
-	scheduleSync(file: TFile, delayMs: number) {
+	scheduleSync(file: TFile, delayMs: number, markdown?: string) {
 		const existingTimer = this.syncTimers.get(file.path);
 
 		if (existingTimer !== undefined) {
@@ -103,6 +119,12 @@ export default class LinkCollectorPlugin extends Plugin {
 
 		const timer = window.setTimeout(() => {
 			this.syncTimers.delete(file.path);
+
+			if (markdown !== undefined) {
+				void this.syncMarkdown(file, markdown, false);
+				return;
+			}
+
 			void this.syncFile(file, false);
 		}, delayMs);
 

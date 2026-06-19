@@ -1,7 +1,9 @@
 import { LinkRule } from './settings';
 
-const MARKDOWN_LINK_REGEX = /\[[^\]]*]\((https?:\/\/[^\s)]+)\)/gi;
+const MARKDOWN_LINK_REGEX = /\[[^\]]*]\(([^\s)]+)\)/gi;
 const BARE_URL_REGEX = /https?:\/\/[^\s<>"'`]+/gi;
+const BARE_DOMAIN_LINK_REGEX =
+	/(?:^|[\s(])((?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?:\/[^\s<>"'`]*)?)/gi;
 
 export function collectLinksForRules(
 	markdown: string,
@@ -25,14 +27,14 @@ export function extractLinks(markdown: string): string[] {
 	const links: string[] = [];
 	const seenLinks = new Set<string>();
 
-	for (const regex of [MARKDOWN_LINK_REGEX, BARE_URL_REGEX]) {
+	for (const regex of [MARKDOWN_LINK_REGEX, BARE_URL_REGEX, BARE_DOMAIN_LINK_REGEX]) {
 		regex.lastIndex = 0;
 
 		for (const match of body.matchAll(regex)) {
 			const rawLink = match[1] ?? match[0];
 			const link = trimTrailingPunctuation(rawLink);
 
-			if (link.length === 0 || seenLinks.has(link)) {
+			if (link.length === 0 || seenLinks.has(link) || !looksLikeWebLink(link)) {
 				continue;
 			}
 
@@ -42,6 +44,19 @@ export function extractLinks(markdown: string): string[] {
 	}
 
 	return links;
+}
+
+function looksLikeWebLink(link: string): boolean {
+	if (/^https?:\/\//i.test(link)) {
+		return true;
+	}
+
+	if (/^www\./i.test(link)) {
+		return true;
+	}
+
+	return /(?:^|\.)[a-z0-9-]+\.[a-z]{2,}(?:\/|$)/i.test(link)
+		&& !/\.md(?:$|[#?])/i.test(link);
 }
 
 function matchesRule(link: string, rule: LinkRule): boolean {
