@@ -1,9 +1,9 @@
 import { LinkRule } from './settings';
 
 const MARKDOWN_LINK_REGEX = /\[[^\]]*]\(([^\s)]+)\)/gi;
-const BARE_URL_REGEX = /https?:\/\/[^\s<>"'`]+/gi;
+const BARE_URL_REGEX = /https?:\/\/[^\s<>"'`()[\]]+/gi;
 const BARE_DOMAIN_LINK_REGEX =
-	/(?:^|[\s(])((?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?:\/[^\s<>"'`]*)?)/gi;
+	/(?:^|[\s(])((?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}(?:\/[^\s<>"'`()[\]]*)?)/gi;
 
 export function collectLinksForRules(
 	markdown: string,
