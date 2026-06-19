@@ -63,7 +63,7 @@ export class LinkCollectorSettingTab extends PluginSettingTab {
 		containerEl.addClass('link-collector-settings');
 
 		new Setting(containerEl)
-			.setName('Link collector')
+			.setName('Rules')
 			.setDesc('Create rules that map matching links in a note body to frontmatter properties.')
 			.setHeading();
 
