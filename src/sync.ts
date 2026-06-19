@@ -9,13 +9,23 @@ export async function syncLinksForFile(
 	file: TFile,
 	settings: LinkCollectorSettings,
 ): Promise<boolean> {
+	const markdown = await app.vault.cachedRead(file);
+
+	return syncLinksForMarkdown(app, file, markdown, settings);
+}
+
+export async function syncLinksForMarkdown(
+	app: App,
+	file: TFile,
+	markdown: string,
+	settings: LinkCollectorSettings,
+): Promise<boolean> {
 	const rules = getValidRules(settings.rules);
 
 	if (rules.length === 0) {
 		return false;
 	}
 
-	const markdown = await app.vault.cachedRead(file);
 	const collectedLinks = collectLinksForRules(markdown, rules);
 	const currentFrontmatter = app.metadataCache.getFileCache(file)?.frontmatter ?? {};
 

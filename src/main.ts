@@ -1,11 +1,11 @@
-import { Notice, Plugin, TFile } from 'obsidian';
+import { MarkdownView, Notice, Plugin, TFile } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
 	LinkCollectorSettings,
 	LinkCollectorSettingTab,
 	normalizeSettings,
 } from './settings';
-import { syncLinksForFile } from './sync';
+import { syncLinksForFile, syncLinksForMarkdown } from './sync';
 
 const DEFAULT_SYNC_DELAY_MS = 500;
 const PASTE_SYNC_DELAY_MS = 250;
@@ -52,12 +52,16 @@ export default class LinkCollectorPlugin extends Plugin {
 
 		this.registerDomEvent(activeDocument, 'paste', () => {
 			window.setTimeout(() => {
-				const file = this.app.workspace.getActiveFile();
+				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
-				if (file) {
-					this.scheduleSync(file, PASTE_SYNC_DELAY_MS);
+				if (markdownView?.file) {
+					void this.syncMarkdown(
+						markdownView.file,
+						markdownView.editor.getValue(),
+						false,
+					);
 				}
-			}, 0);
+			}, PASTE_SYNC_DELAY_MS);
 		});
 	}
 
@@ -81,8 +85,13 @@ export default class LinkCollectorPlugin extends Plugin {
 	}
 
 	async saveSettings() {
-		this.settings = normalizeSettings(this.settings);
-		await this.saveData(this.settings);
+		await this.saveData(normalizeSettings(this.settings));
+
+		const file = this.app.workspace.getActiveFile();
+
+		if (file) {
+			this.scheduleSync(file, DEFAULT_SYNC_DELAY_MS);
+		}
 	}
 
 	scheduleSync(file: TFile, delayMs: number) {
@@ -109,6 +118,35 @@ export default class LinkCollectorPlugin extends Plugin {
 
 		try {
 			const changed = await syncLinksForFile(this.app, file, this.settings);
+
+			if (showNotice) {
+				new Notice(changed ? 'Link properties updated.' : 'Link properties already up to date.');
+			}
+		} catch (error) {
+			console.error('Link Collector failed to sync links.', error);
+
+			if (showNotice) {
+				new Notice('Link collector could not sync this note.');
+			}
+		} finally {
+			this.syncingFiles.delete(file.path);
+		}
+	}
+
+	private async syncMarkdown(file: TFile, markdown: string, showNotice: boolean) {
+		if (file.extension !== 'md' || this.syncingFiles.has(file.path)) {
+			return;
+		}
+
+		this.syncingFiles.add(file.path);
+
+		try {
+			const changed = await syncLinksForMarkdown(
+				this.app,
+				file,
+				markdown,
+				this.settings,
+			);
 
 			if (showNotice) {
 				new Notice(changed ? 'Link properties updated.' : 'Link properties already up to date.');
