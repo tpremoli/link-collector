@@ -24,12 +24,14 @@ export async function syncLinksForFile(
 	}
 
 	await app.fileManager.processFrontMatter(file, (frontmatter) => {
+		const managedFrontmatter = frontmatter as Record<string, unknown>;
+
 		for (const rule of rules) {
 			const propertyName = rule.propertyName.trim();
 			const links = collectedLinks.get(propertyName) ?? [];
 
 			if (links.length === 0) {
-				delete frontmatter[propertyName];
+				delete managedFrontmatter[propertyName];
 				continue;
 			}
 
@@ -37,15 +39,15 @@ export async function syncLinksForFile(
 				const firstLink = links[0];
 
 				if (firstLink === undefined) {
-					delete frontmatter[propertyName];
+					delete managedFrontmatter[propertyName];
 					continue;
 				}
 
-				frontmatter[propertyName] = firstLink;
+				managedFrontmatter[propertyName] = firstLink;
 				continue;
 			}
 
-			frontmatter[propertyName] = links;
+			managedFrontmatter[propertyName] = links;
 		}
 	});
 

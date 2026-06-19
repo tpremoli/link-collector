@@ -2,7 +2,7 @@
 	"id": "link-collector",
 	"name": "Link Collector",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
+	"minAppVersion": "1.4.4",
 	"description": "Automatically keeps frontmatter properties in sync with links found in note bodies.",
 	"isDesktopOnly": false
 }

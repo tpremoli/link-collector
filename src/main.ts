@@ -117,7 +117,7 @@ export default class LinkCollectorPlugin extends Plugin {
 			console.error('Link Collector failed to sync links.', error);
 
 			if (showNotice) {
-				new Notice('Link Collector could not sync this note.');
+				new Notice('Link collector could not sync this note.');
 			}
 		} finally {
 			this.syncingFiles.delete(file.path);
